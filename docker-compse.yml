@@ -1,0 +1,56 @@
+version: '3.8'
+services:
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    container_name: es01
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - bootstrap.memory_lock=true
+      - network.bind_host=0.0.0.0
+      - network.publish_host=127.0.0.1
+      - http.port=9200
+      - transport.port=9300
+      - discovery.seed_hosts=["127.0.0.1:9300"]
+      - cluster.initial_master_nodes=["127.0.0.1:9300"]
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./docker/data:/usr/share/elasticsearch/data
+      - ./docker/custom-plugins:/usr/share/elasticsearch/custom-plugin
+    ports:
+      - 9200:9200
+    networks:
+      - elastic
+    entrypoint: /bin/bash -c "
+      if [ ! -f /usr/share/elasticsearch/config/plugins_installed ]; then
+      /usr/share/elasticsearch/bin/elasticsearch-plugin install analysis-nori &&
+      /usr/share/elasticsearch/bin/elasticsearch-plugin install file:///usr/share/elasticsearch/custom-plugin/score-normalizer-1.0.zip &&
+      touch /usr/share/elasticsearch/config/plugins_installed;
+      fi &&
+      /usr/local/bin/docker-entrypoint.sh
+      "
+
+  kib01:
+    image: docker.elastic.co/kibana/kibana:8.12.2
+    container_name: kib01
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://es01:9200
+      ELASTICSEARCH_HOSTS: http://es01:9200
+    networks:
+      - elastic
+
+volumes:
+  data01:
+    driver: local
+
+networks:
+  elastic:
+    driver: bridge
