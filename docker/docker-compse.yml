@@ -21,18 +21,23 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - ./docker/data:/usr/share/elasticsearch/data
-      - ./docker/custom-plugins:/usr/share/elasticsearch/custom-plugin
+      - ./data:/usr/share/elasticsearch/data
+      - ./attachment:/usr/share/elasticsearch/attachment
     ports:
       - 9200:9200
     networks:
       - elastic
     entrypoint: /bin/bash -c "
       if [ ! -f /usr/share/elasticsearch/config/plugins_installed ]; then
-      /usr/share/elasticsearch/bin/elasticsearch-plugin install analysis-nori &&
-      /usr/share/elasticsearch/bin/elasticsearch-plugin install file:///usr/share/elasticsearch/custom-plugin/score-normalizer-1.0.zip &&
-      touch /usr/share/elasticsearch/config/plugins_installed;
+        /usr/share/elasticsearch/bin/elasticsearch-plugin install analysis-nori &&
+        /usr/share/elasticsearch/bin/elasticsearch-plugin install file:///usr/share/elasticsearch/attachment/score-normalizer-1.0.zip &&
+        touch /usr/share/elasticsearch/config/plugins_installed;
       fi &&
+      if [ -d /usr/share/elasticsearch/config/dictionary ]; then
+        rm -r /usr/share/elasticsearch/config/dictionary;
+      fi &&
+      mkdir /usr/share/elasticsearch/config/dictionary &&
+      cp /usr/share/elasticsearch/attachment/*.txt /usr/share/elasticsearch/config/dictionary/ &&
       /usr/local/bin/docker-entrypoint.sh
       "
 
