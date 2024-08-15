@@ -11,7 +11,7 @@
 **Min-Max 정규화**: <br/>
 점수를 지정된 범위(일반적으로 [0, 1])로 스케일링하여, 결과의 상대적 순서를 유지합니다.
 
-$\text{Normalized Score} = \frac{\text{Original Score} - \text{Min Score}}{\text{Max Score} - \text{Min Score}}$ 
+> $\text{Normalized Score} = \frac{\text{Original Score} - \text{Min Score}}{\text{Max Score} - \text{Min Score}}$ 
 
 *Original Score*: Elasticsaerch 기본 검색 결과 score<br/>
 *Min Score*: 각 샤드의 검색 결과 중 window size 내 score 최솟값<br/>
@@ -19,15 +19,15 @@ $\text{Normalized Score} = \frac{\text{Original Score} - \text{Min Score}}{\text
 
 **Z-Score 정규화**: <br/>평균에서 표준편차 단위로 점수를 표준화하여, 정규 분포된 데이터에 적합한 정규화 방법입니다.
 
-$\text{Z-Score} = \frac{\text{Original Score} - \mu}{\sigma}$
+> $\text{Z-Score} = \frac{\text{Original Score} - \mu}{\sigma}$
 
 $\mu$: 각 샤드의 검색 결과 중 window size 내 전체 score 평균 <br/>
-$\sigma$: 각 샤드의 검색 결과 중 window size 내 전체 score 표준편차
-- (표준편차 계산식: σ = √(Σ((xi - μ)^2) / N) [xi = 각 데이터 값, μ = 모집단 평균, N = 데이터 값의 개수] )
+$\sigma$: 각 샤드의 검색 결과 중 window size 내 전체 score 표준편차 <br/>
+&nbsp;&nbsp;&nbsp; (표준편차 계산식: σ = √(Σ((xi - μ)^2) / N) [xi = 각 데이터 값, μ = 모집단 평균, N = 데이터 값의 개수] )
 
 **Robust 정규화**: <br/>사분위 범위를 기반으로 정규화하여, 극단값이 있는 데이터셋에서도 안정적인 점수 산출이 가능합니다.
 
-$\text{Normalized Score} = \frac{\text{Original Score} - Q1}{Q3 - Q1}$
+> $\text{Normalized Score} = \frac{\text{Original Score} - Q1}{Q3 - Q1}$
 
 ## Tech Stack
 - JAVA 17
@@ -48,7 +48,7 @@ $\text{Normalized Score} = \frac{\text{Original Score} - Q1}{Q3 - Q1}$
 **min_score, max_score** : (min_max 알고리즘 한정) 정규화된 점수 사용자 지정 Min,Max score 보정<br/>
 
 ### Min-Max
-```json
+```
 GET index_name/_search
 {
   "query": {
@@ -68,7 +68,7 @@ GET index_name/_search
 ```
 ### Z-Score
 
-```json
+```
 GET index_name/_search
 {
   "query": {
@@ -85,7 +85,7 @@ GET index_name/_search
 }
 ```
 ### Robust
-```json
+```
 GET index_name/_search
 {
   "query": {
