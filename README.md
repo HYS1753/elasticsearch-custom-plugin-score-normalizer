@@ -11,16 +11,14 @@
 **Min-Max 정규화**: <br/>
 점수를 지정된 범위(일반적으로 [0, 1])로 스케일링하여, 결과의 상대적 순서를 유지합니다.
 
-> $\text{Normalized Score} = \frac{\text{Original Score} - \text{Min Score}}{\text{Max Score} - \text{Min Score}}$ 
-
+> $\text{Normalized Score} = \frac{\text{Original Score} - \text{Min Score}}{\text{Max Score} - \text{Min Score}}$ <br/><br/>
 *Original Score*: Elasticsaerch 기본 검색 결과 score<br/>
 *Min Score*: 각 샤드의 검색 결과 중 window size 내 score 최솟값<br/>
 *Max Score*: 각 샤드의 검색 결과 중 window size 내 score 최댓값
 
 **Z-Score 정규화**: <br/>평균에서 표준편차 단위로 점수를 표준화하여, 정규 분포된 데이터에 적합한 정규화 방법입니다.
 
-> $\text{Z-Score} = \frac{\text{Original Score} - \mu}{\sigma}$
-
+> $\text{Z-Score} = \frac{\text{Original Score} - \mu}{\sigma}$ <br/><br/>
 $\mu$: 각 샤드의 검색 결과 중 window size 내 전체 score 평균 <br/>
 $\sigma$: 각 샤드의 검색 결과 중 window size 내 전체 score 표준편차 <br/>
 &nbsp;&nbsp;&nbsp; (표준편차 계산식: σ = √(Σ((xi - μ)^2) / N) [xi = 각 데이터 값, μ = 모집단 평균, N = 데이터 값의 개수] )
