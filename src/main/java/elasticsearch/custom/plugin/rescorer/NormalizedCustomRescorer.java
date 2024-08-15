@@ -13,9 +13,9 @@ import java.io.IOException;
 
 import static java.util.Collections.singletonList;
 
-public class NormalizerRescorer implements Rescorer {
+public class NormalizedCustomRescorer implements Rescorer {
 
-    public static final Rescorer INSTANCE = new NormalizerRescorer();
+    public static final Rescorer INSTANCE = new NormalizedCustomRescorer();
 
     /**
      * Describes the score computation for document and query.

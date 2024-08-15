@@ -3,7 +3,7 @@ package elasticsearch.custom.plugin.builder;
 import elasticsearch.custom.plugin.enumeration.NormalizerFactorOperation;
 import elasticsearch.custom.plugin.enumeration.NormalizerType;
 import elasticsearch.custom.plugin.enumeration.MinMaxSameScoreStrategy;
-import elasticsearch.custom.plugin.rescorer.NormalizerRescorer;
+import elasticsearch.custom.plugin.rescorer.NormalizedCustomRescorer;
 import org.elasticsearch.TransportVersion;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
@@ -15,7 +15,7 @@ import org.elasticsearch.xcontent.*;
 
 import java.io.IOException;
 
-public class NormalizerBuilder extends RescorerBuilder<NormalizerBuilder> {
+public class RescorerNormalizerBuilder extends RescorerBuilder<RescorerNormalizerBuilder> {
 
     // 상수 설정
     public static final String NAME = "score_normalizer";
@@ -55,9 +55,9 @@ public class NormalizerBuilder extends RescorerBuilder<NormalizerBuilder> {
     }
 
     // 기본 생성자
-    public NormalizerBuilder() {}
+    public RescorerNormalizerBuilder() {}
 
-    public NormalizerBuilder(StreamInput in) throws IOException {
+    public RescorerNormalizerBuilder(StreamInput in) throws IOException {
         super(in);
         normalizerType = in.readOptionalString();
         minScore = in.readOptionalFloat();
@@ -89,7 +89,7 @@ public class NormalizerBuilder extends RescorerBuilder<NormalizerBuilder> {
         xContentBuilder.endObject();
     }
 
-    public static NormalizerBuilder fromXContent(XContentParser parser) throws IOException {
+    public static RescorerNormalizerBuilder fromXContent(XContentParser parser) throws IOException {
         NormalizerParserBuilder normalizerParserBuilder = NORMALIZER_PARSER.parse(
                 parser, new NormalizerParserBuilder(), null
         );
@@ -98,8 +98,8 @@ public class NormalizerBuilder extends RescorerBuilder<NormalizerBuilder> {
 
     @Override
     protected RescoreContext innerBuildContext(int windowSize, SearchExecutionContext searchExecutionContext) throws IOException {
-        NormalizerRescorer.NormalizerRescorerContext normalizerRescorerContext =
-                new NormalizerRescorer.NormalizerRescorerContext(
+        NormalizedCustomRescorer.NormalizerRescorerContext normalizerRescorerContext =
+                new NormalizedCustomRescorer.NormalizerRescorerContext(
                         windowSize, normalizerType, minScore, maxScore, factor, factorMode, minMaxSameScoreStrategy
                 );
         return normalizerRescorerContext;
@@ -116,7 +116,7 @@ public class NormalizerBuilder extends RescorerBuilder<NormalizerBuilder> {
     }
 
     @Override
-    public RescorerBuilder<NormalizerBuilder> rewrite(QueryRewriteContext queryRewriteContext) throws IOException {
+    public RescorerBuilder<RescorerNormalizerBuilder> rewrite(QueryRewriteContext queryRewriteContext) throws IOException {
         return this;
     }
 
@@ -152,8 +152,8 @@ public class NormalizerBuilder extends RescorerBuilder<NormalizerBuilder> {
         private String factorMode = DEFAULT_FACTOR_MODE;
         private String minMaxSameScoreStrategy = DEFAULT_MIN_MAX_SAME_SCORE_STRATEGY;
 
-        NormalizerBuilder build() {
-            NormalizerBuilder builder = new NormalizerBuilder();
+        RescorerNormalizerBuilder build() {
+            RescorerNormalizerBuilder builder = new RescorerNormalizerBuilder();
             builder.setNormalizerType(normalizerType);
             builder.setMinScore(minScore);
             builder.setMaxScore(maxScore);

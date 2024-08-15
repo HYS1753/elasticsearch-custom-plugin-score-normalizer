@@ -1,6 +1,6 @@
 package elasticsearch.custom.plugin.rescorer.normalizer;
 
-import elasticsearch.custom.plugin.rescorer.NormalizerRescorer;
+import elasticsearch.custom.plugin.rescorer.NormalizedCustomRescorer;
 import elasticsearch.custom.plugin.enumeration.MinMaxSameScoreStrategy;
 import elasticsearch.custom.plugin.enumeration.NormalizerFactorOperation;
 import org.apache.lucene.search.ScoreDoc;
@@ -17,7 +17,7 @@ public class MinMaxNormalizer implements CustomNormalizer {
      * @return
      */
     @Override
-    public TopDocs normalize(TopDocs topDocs, NormalizerRescorer.NormalizerRescorerContext rescorerContext) {
+    public TopDocs normalize(TopDocs topDocs, NormalizedCustomRescorer.NormalizerRescorerContext rescorerContext) {
 
         if (rescorerContext.getMinScore() >= rescorerContext.getMaxScore()) {
             throw new IllegalArgumentException(

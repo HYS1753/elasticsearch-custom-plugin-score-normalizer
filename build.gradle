@@ -13,9 +13,9 @@ apply plugin: 'elasticsearch.esplugin'
 apply plugin: 'elasticsearch.yaml-rest-test'
 
 esplugin {
-  name 'score-normalizer'
-  description 'elasticsearch-score-normalizer(mix max, z-score, robust) by hys1753@naver.com'
-  classname 'elasticsearch.custom.plugin.NormalizerPlugin'
+  name 'scorer-normalizer'
+  description 'elasticsearch custom plugin - use NormalizedCustomRescorer to Normalize search reault score. (mix max, z-score, robust) by hys1753@naver.com'
+  classname 'elasticsearch.custom.plugin.RescorerNormalizerPlugin'
 }
 
 group = "elasticsearch.plugin"
