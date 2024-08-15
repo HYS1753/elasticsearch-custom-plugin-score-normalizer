@@ -35,9 +35,14 @@ $\sigma$: 각 샤드의 검색 결과 중 window size 내 전체 score 표준편
 - org.elasticsearch.elasticsearch 8.12.2
 - org.junit.jupiter.junit-jupiter-api 5.7.0
 - org.junit.jupiter.junit-jupiter-engine 5.7.0
+- docker image
+  - docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+  - docker.elastic.co/kibana/kibana:8.12.2
 
 ## Prerequisites
-해당 플러그인은 Elasticsearch 8.12.2 버전에 호환됩니다.
+해당 플러그인은 Elasticsearch 8.12.2 버전에 호환됩니다. <br/>
+docker를 통한 테스트 환경 구성을 할 수 있습니다. <br/>
+(root 디렉터리 기준 `./docker/start-es-docker.sh` 실행)
 
 ## Usage
 ### Options
