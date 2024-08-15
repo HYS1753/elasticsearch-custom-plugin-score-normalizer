@@ -12,16 +12,16 @@
 점수를 지정된 범위(일반적으로 [0, 1])로 스케일링하여, 결과의 상대적 순서를 유지합니다.
 
 > $\text{Normalized Score} = \frac{\text{Original Score} - \text{Min Score}}{\text{Max Score} - \text{Min Score}}$ <br/><br/>
-*Original Score*: Elasticsaerch 기본 검색 결과 score<br/>
-*Min Score*: 각 샤드의 검색 결과 중 window size 내 score 최솟값<br/>
-*Max Score*: 각 샤드의 검색 결과 중 window size 내 score 최댓값
+> *Original Score*: Elasticsaerch 기본 검색 결과 score<br/>
+> *Min Score*: 각 샤드의 검색 결과 중 window size 내 score 최솟값<br/>
+> *Max Score*: 각 샤드의 검색 결과 중 window size 내 score 최댓값
 
 **Z-Score 정규화**: <br/>평균에서 표준편차 단위로 점수를 표준화하여, 정규 분포된 데이터에 적합한 정규화 방법입니다.
 
 > $\text{Z-Score} = \frac{\text{Original Score} - \mu}{\sigma}$ <br/><br/>
-$\mu$: 각 샤드의 검색 결과 중 window size 내 전체 score 평균 <br/>
-$\sigma$: 각 샤드의 검색 결과 중 window size 내 전체 score 표준편차 <br/>
-&nbsp;&nbsp;&nbsp; (표준편차 계산식: σ = √(Σ((xi - μ)^2) / N) [xi = 각 데이터 값, μ = 모집단 평균, N = 데이터 값의 개수] )
+> $\mu$: 각 샤드의 검색 결과 중 window size 내 전체 score 평균 <br/>
+> $\sigma$: 각 샤드의 검색 결과 중 window size 내 전체 score 표준편차 <br/>
+> &nbsp;&nbsp;&nbsp; (표준편차 계산식: σ = √(Σ((xi - μ)^2) / N) [xi = 각 데이터 값, μ = 모집단 평균, N = 데이터 값의 개수] )
 
 **Robust 정규화**: <br/>사분위 범위를 기반으로 정규화하여, 극단값이 있는 데이터셋에서도 안정적인 점수 산출이 가능합니다.
 
@@ -44,11 +44,16 @@ docker를 통한 테스트 환경 구성을 할 수 있습니다. <br/>
 
 ## Usage
 ### Options
-**window_size** : rescoring 할 대상 문서 수<br/>
-**normalizer_type** : 정규화 알고리즘 (min_max, z_score, robust)<br/>
-**factor** : 정규화 된 점수의 factor<br/>
-**factor_mode** : 위의 factor 적용 모드 (sum, multiply, increase_by_percent)<br/>
-**min_score, max_score** : (min_max 알고리즘 한정) 정규화된 점수 사용자 지정 Min,Max score 보정<br/>
+> **window_size** : <br/>
+> &nbsp;&nbsp;&nbsp;&nbsp;rescoring 할 대상 문서 수<br/>
+> **normalizer_type** : <br/>
+> &nbsp;&nbsp;&nbsp;&nbsp;정규화 알고리즘 (min_max, z_score, robust)<br/>
+> **factor** : <br/>
+> &nbsp;&nbsp;&nbsp;&nbsp;정규화 된 점수의 factor<br/>
+> **factor_mode** : <br/>
+> &nbsp;&nbsp;&nbsp;&nbsp;위의 factor 적용 모드 (sum, multiply, increase_by_percent)<br/>
+> **min_score, max_score** : <br/>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(min_max 알고리즘 한정) 정규화된 점수 사용자 지정 Min,Max score 보정<br/>
 
 ### Min-Max
 ```
