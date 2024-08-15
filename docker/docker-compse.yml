@@ -16,6 +16,7 @@ services:
       - xpack.security.enabled=false
       - xpack.security.enrollment.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
     ulimits:
       memlock:
         soft: -1
@@ -25,12 +26,13 @@ services:
       - ./attachment:/usr/share/elasticsearch/attachment
     ports:
       - 9200:9200
+      - 5005:5005
     networks:
       - elastic
     entrypoint: /bin/bash -c "
       if [ ! -f /usr/share/elasticsearch/config/plugins_installed ]; then
         /usr/share/elasticsearch/bin/elasticsearch-plugin install analysis-nori &&
-        /usr/share/elasticsearch/bin/elasticsearch-plugin install file:///usr/share/elasticsearch/attachment/score-normalizer-1.0.zip &&
+        /usr/share/elasticsearch/bin/elasticsearch-plugin install file:///usr/share/elasticsearch/attachment/scorer-normalizer-1.0.zip &&
         touch /usr/share/elasticsearch/config/plugins_installed;
       fi &&
       if [ -d /usr/share/elasticsearch/config/dictionary ]; then
