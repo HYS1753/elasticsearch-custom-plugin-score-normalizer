@@ -17,7 +17,7 @@ cp "$SOURCE_DIR"/* "$CUSTOM_PLUGIN_DIR"/
 if [ $? -eq 0 ]; then
   echo "Custom plugin moved to docker volume successfully."
   echo "docker run"
-  docker-compose -f ./docker-compse.yml up -d
+  docker-compose -f ./docker-compose.yml up -d
 else
   echo "Fail to move custom plugin, try gradle assemble to make custom plugin zip file"
 fi
