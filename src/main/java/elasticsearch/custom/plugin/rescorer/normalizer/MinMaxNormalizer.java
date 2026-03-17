@@ -28,42 +28,111 @@ public class MinMaxNormalizer implements CustomNormalizer {
             return topDocs;
         }
 
+        float userCalibratedMaxScore = rescorerContext.getMaxScore();
+        float userCalibratedMinScore = rescorerContext.getMinScore();
+
+        // explain용 사용자 설정값 저장
+        rescorerContext.putStat("userMinScore", userCalibratedMinScore);
+        rescorerContext.putStat("userMaxScore", userCalibratedMaxScore);
+
         if (topDocs.scoreDocs.length == 1) {
-            topDocs.scoreDocs[0].score = applyFactorToNormalizedScore(
-                    rescorerContext.getFactorMode(), rescorerContext.getFactor(), rescorerContext.getMaxScore());
+            ScoreDoc scoreDoc = topDocs.scoreDocs[0];
+            float originalScore = scoreDoc.score;
+            float normalizedScore = userCalibratedMaxScore;
+            float finalScore = applyFactorToNormalizedScore(
+                    rescorerContext.getFactorMode(),
+                    rescorerContext.getFactor(),
+                    normalizedScore
+            );
+
+            scoreDoc.score = finalScore;
+
+            rescorerContext.putStat("topDocsMinScore", originalScore);
+            rescorerContext.putStat("topDocsMaxScore", originalScore);
+
+            rescorerContext.putDebugInfo(scoreDoc.doc,
+                    new NormalizedCustomRescorer.DocScoreDebugInfo(
+                            originalScore,
+                            normalizedScore,
+                            finalScore,
+                            rescorerContext.getFactorMode(),
+                            rescorerContext.getFactor()
+                    )
+            );
+
             return topDocs;
         }
 
         float topDocsMaxScore = topDocs.scoreDocs[0].score;
         float topDocsMinScore = topDocs.scoreDocs[topDocs.scoreDocs.length - 1].score;
-        float userCalibratedMaxScore = rescorerContext.getMaxScore();
-        float userCalibratedMinScore = rescorerContext.getMinScore();
+
+        // explain용 shard topDocs 통계 저장
+        rescorerContext.putStat("topDocsMinScore", topDocsMinScore);
+        rescorerContext.putStat("topDocsMaxScore", topDocsMaxScore);
 
         if (Float.compare(topDocsMaxScore, topDocsMinScore) == 0) {
             // 상위 매칭 도큐먼트의 최대, 최소 score 가 동일 할 경우
             String userMinMaxSameScoreStrategy = rescorerContext.getMinMaxSameScoreStrategy();
+
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                if(userMinMaxSameScoreStrategy.equals(MinMaxSameScoreStrategy.max.name())) {
-                    scoreDoc.score = userCalibratedMaxScore;
+                float originalScore = scoreDoc.score;
+                float normalizedScore;
+
+                if (userMinMaxSameScoreStrategy.equals(MinMaxSameScoreStrategy.max.name())) {
+                    normalizedScore = userCalibratedMaxScore;
                 } else if (userMinMaxSameScoreStrategy.equals(MinMaxSameScoreStrategy.min.name())) {
-                    scoreDoc.score = userCalibratedMinScore;
-                } else {    // avg
-                    scoreDoc.score = (userCalibratedMaxScore + userCalibratedMinScore) / 2;
+                    normalizedScore = userCalibratedMinScore;
+                } else { // avg
+                    normalizedScore = (userCalibratedMaxScore + userCalibratedMinScore) / 2f;
                 }
+
+                float finalScore = applyFactorToNormalizedScore(
+                        rescorerContext.getFactorMode(),
+                        rescorerContext.getFactor(),
+                        normalizedScore
+                );
+
+                scoreDoc.score = finalScore;
+
+                rescorerContext.putDebugInfo(scoreDoc.doc,
+                        new NormalizedCustomRescorer.DocScoreDebugInfo(
+                                originalScore,
+                                normalizedScore,
+                                finalScore,
+                                rescorerContext.getFactorMode(),
+                                rescorerContext.getFactor()
+                        )
+                );
             }
         } else {
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                float originalScore = scoreDoc.score;
+
                 float normalizedScore = calculateMinMaxScore(
-                        scoreDoc.score,
+                        originalScore,
                         topDocsMaxScore,
                         topDocsMinScore,
                         userCalibratedMaxScore,
-                        userCalibratedMinScore);
+                        userCalibratedMinScore
+                );
 
-                scoreDoc.score = applyFactorToNormalizedScore(
+                float finalScore = applyFactorToNormalizedScore(
                         rescorerContext.getFactorMode(),
                         rescorerContext.getFactor(),
-                        normalizedScore);
+                        normalizedScore
+                );
+
+                scoreDoc.score = finalScore;
+
+                rescorerContext.putDebugInfo(scoreDoc.doc,
+                        new NormalizedCustomRescorer.DocScoreDebugInfo(
+                                originalScore,
+                                normalizedScore,
+                                finalScore,
+                                rescorerContext.getFactorMode(),
+                                rescorerContext.getFactor()
+                        )
+                );
             }
         }
 

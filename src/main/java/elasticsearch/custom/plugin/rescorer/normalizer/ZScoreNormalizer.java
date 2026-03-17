@@ -23,24 +23,52 @@ public class ZScoreNormalizer implements CustomNormalizer {
         }
 
         ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+
         float meanScore = getMeanScore(scoreDocs);
-        float standardDeviation = getStandardDeviation(scoreDocs, meanScore);
+        float rawStandardDeviation = getStandardDeviation(scoreDocs, meanScore);
+
         // 분모 0 나누기 방지
-        standardDeviation = (standardDeviation == 0.0f) ? 1.0f : standardDeviation;
+        float adjustedStandardDeviation = (rawStandardDeviation == 0.0f) ? 1.0f : rawStandardDeviation;
+
+        // explain용 통계 저장
+        rescorerContext.putStat("meanScore", meanScore);
+        rescorerContext.putStat("standardDeviation", adjustedStandardDeviation);
+        rescorerContext.putStat("rawStandardDeviation", rawStandardDeviation);
 
         for (ScoreDoc scoreDoc : scoreDocs) {
-            float normalizedScore = calculateZScore(scoreDoc.score, meanScore, standardDeviation);
-            scoreDoc.score = applyFactorToNormalizedScore(
+            float originalScore = scoreDoc.score;
+
+            float normalizedScore = calculateZScore(
+                    originalScore,
+                    meanScore,
+                    adjustedStandardDeviation
+            );
+
+            float finalScore = applyFactorToNormalizedScore(
                     rescorerContext.getFactorMode(),
                     rescorerContext.getFactor(),
-                    normalizedScore);
+                    normalizedScore
+            );
+
+            scoreDoc.score = finalScore;
+
+            rescorerContext.putDebugInfo(
+                    scoreDoc.doc,
+                    new NormalizedCustomRescorer.DocScoreDebugInfo(
+                            originalScore,
+                            normalizedScore,
+                            finalScore,
+                            rescorerContext.getFactorMode(),
+                            rescorerContext.getFactor()
+                    )
+            );
         }
+
         return topDocs;
     }
 
-
     /**
-     * 매칭된 도큐먼트 들의 평균 score 값 계산. (
+     * 매칭된 도큐먼트 들의 평균 score 값 계산
      *
      * @param scoreDocs
      * @return
@@ -49,7 +77,7 @@ public class ZScoreNormalizer implements CustomNormalizer {
         float total = 0.0f;
 
         for (ScoreDoc scoreDoc : scoreDocs) {
-            total = total + scoreDoc.score;
+            total += scoreDoc.score;
         }
 
         return total / scoreDocs.length;
@@ -91,8 +119,8 @@ public class ZScoreNormalizer implements CustomNormalizer {
      * factor mode 에 따른 factor 값 normalized 결과에 적용
      *
      * @param factorMode    지정 가능 모드 (sum, multiply, increase_by_percent)
-     * @param factor        factor 값.
-     * @param normalizedScore   min max normalized document score
+     * @param factor        factor 값
+     * @param normalizedScore   z-score normalized document score
      * @return
      */
     private static float applyFactorToNormalizedScore(String factorMode, float factor, float normalizedScore) {
@@ -114,5 +142,4 @@ public class ZScoreNormalizer implements CustomNormalizer {
         }
         return normalizedScore;
     }
-
 }

@@ -27,18 +27,47 @@ public class RobustNormalizer implements CustomNormalizer {
 
         ScoreDoc[] scoreDocs = topDocs.scoreDocs;
         float[] scores = getSortedScores(scoreDocs);
+
         float median = getMedianScore(scores);
-        float IQR = getIQRScore(scores);
+        float rawIQR = getIQRScore(scores);
+
         // 분모 0 나누기 방지
-        IQR = (IQR == 0.0f) ? 1.0f : IQR;
+        float adjustedIQR = (rawIQR == 0.0f) ? 1.0f : rawIQR;
+
+        // explain용 통계 저장
+        rescorerContext.putStat("median", median);
+        rescorerContext.putStat("iqr", adjustedIQR);
+        rescorerContext.putStat("rawIqr", rawIQR);
 
         for (ScoreDoc scoreDoc : scoreDocs) {
-            float normalizedScore = calculateRobustScore(scoreDoc.score, median, IQR);
-            scoreDoc.score = applyFactorToNormalizedScore(
+            float originalScore = scoreDoc.score;
+
+            float normalizedScore = calculateRobustScore(
+                    originalScore,
+                    median,
+                    adjustedIQR
+            );
+
+            float finalScore = applyFactorToNormalizedScore(
                     rescorerContext.getFactorMode(),
                     rescorerContext.getFactor(),
-                    normalizedScore);
+                    normalizedScore
+            );
+
+            scoreDoc.score = finalScore;
+
+            rescorerContext.putDebugInfo(
+                    scoreDoc.doc,
+                    new NormalizedCustomRescorer.DocScoreDebugInfo(
+                            originalScore,
+                            normalizedScore,
+                            finalScore,
+                            rescorerContext.getFactorMode(),
+                            rescorerContext.getFactor()
+                    )
+            );
         }
+
         return topDocs;
     }
 
@@ -100,8 +129,8 @@ public class RobustNormalizer implements CustomNormalizer {
         int scoresLength = scores.length;
         // 지정한 백분위수에 따른 scores 위치
         float index = (percentile / 100) * (scoresLength - 1);
-        int lower = (int) Math.floor(index);    // 올림
-        int upper = (int) Math.ceil(index);     // 내림
+        int lower = (int) Math.floor(index);
+        int upper = (int) Math.ceil(index);
         float weight = index - lower;
 
         if (lower == upper) {
@@ -128,7 +157,7 @@ public class RobustNormalizer implements CustomNormalizer {
      *
      * @param factorMode    지정 가능 모드 (sum, multiply, increase_by_percent)
      * @param factor        factor 값.
-     * @param normalizedScore   min max normalized document score
+     * @param normalizedScore   robust normalized document score
      * @return
      */
     private static float applyFactorToNormalizedScore(String factorMode, float factor, float normalizedScore) {
@@ -150,5 +179,4 @@ public class RobustNormalizer implements CustomNormalizer {
         }
         return normalizedScore;
     }
-
 }
