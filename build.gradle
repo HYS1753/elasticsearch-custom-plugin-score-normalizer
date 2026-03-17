@@ -5,7 +5,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "org.elasticsearch.gradle:build-tools:8.12.2"
+    classpath "org.elasticsearch.gradle:build-tools:9.1.5"
   }
 }
 
@@ -19,8 +19,8 @@ esplugin {
 }
 
 group = "elasticsearch.plugin"
-version = "1.0"
-sourceCompatibility = '17'
+version = "9.1.5"
+sourceCompatibility = '21'
 
 
 repositories {
@@ -29,7 +29,7 @@ repositories {
 
 
 dependencies {
-  implementation group: 'org.elasticsearch', name: 'elasticsearch', version: '8.12.2'
+  implementation group: 'org.elasticsearch', name: 'elasticsearch', version: '9.1.5'
   yamlRestTestRuntimeOnly "org.apache.logging.log4j:log4j-core"
 
   testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.7.0'
