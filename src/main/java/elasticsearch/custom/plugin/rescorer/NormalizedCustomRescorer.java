@@ -327,7 +327,7 @@ public class NormalizedCustomRescorer implements Rescorer {
 
         return Explanation.match(
                 debugInfo.getFinalScore(),
-                "final rescored score after " + normalizerType + " normalization",
+                "score_normalizer_rescore[type=" + normalizerType + "]",
                 topLevelDetails
         );
     }
