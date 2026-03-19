@@ -4,16 +4,14 @@ import elasticsearch.custom.plugin.enumeration.NormalizerType;
 import elasticsearch.custom.plugin.rescorer.normalizer.CustomNormalizerSelector;
 import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.elasticsearch.core.Nullable;
 import org.elasticsearch.search.rescore.RescoreContext;
 import org.elasticsearch.search.rescore.Rescorer;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class NormalizedCustomRescorer implements Rescorer {
@@ -162,18 +160,36 @@ public class NormalizedCustomRescorer implements Rescorer {
 
         /* TopDocs.scoreDocs : The Top hits for the query
            TopDocs.totalHits : TheTotal number of hits for the query. */
-        if(topDocs == null || topDocs.scoreDocs.length == 0) {
+        if (topDocs == null || topDocs.scoreDocs.length == 0) {
             return topDocs;
         }
 
         // 기본 rescoreContext 에 추가로 Normalizer 에 필요한 context 정의
         NormalizerRescorerContext context = (NormalizerRescorerContext) rescoreContext;
-        String normalizerType = context.normalizerType;
+        String normalizerType = context.getNormalizerType();
 
-        // context에 따른 documents Normalize 실행.
-        topDocs = CustomNormalizerSelector
+        int windowSize = Math.min(context.getWindowSize(), topDocs.scoreDocs.length);
+
+        // 1) rescoring 대상(상위 window)만 잘라냄
+        ScoreDoc[] windowScoreDocs = Arrays.copyOf(topDocs.scoreDocs, windowSize);
+        TopDocs windowTopDocs = new TopDocs(topDocs.totalHits, windowScoreDocs);
+
+        // 2) context에 따른 documents(상위 window) Normalize 실행. (상위 window만 normalize)
+        TopDocs rescoredWindowTopDocs = CustomNormalizerSelector
                 .getCustomNormalizer(NormalizerType.valueOf(normalizerType))
-                .normalize(topDocs, context);
+                .normalize(windowTopDocs, context);
+
+        // 3) 앞쪽 window 구간만 원본 topDocs에 반영
+        System.arraycopy(
+                rescoredWindowTopDocs.scoreDocs,
+                0,
+                topDocs.scoreDocs,
+                0,
+                windowSize
+        );
+
+        // 4) 여기서 전체를 final score 기준으로 다시 정렬
+        Arrays.sort(topDocs.scoreDocs, (a, b) -> Float.compare(b.score, a.score));
 
         return topDocs;
     }
